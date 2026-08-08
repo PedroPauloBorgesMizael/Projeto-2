@@ -1,13 +1,10 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-
+import { Role } from "@prisma/client";
 import { env } from "@/config/env";
-
-type UserRole = "ADMIN" | "TECHNICIAN" | "REQUESTER";
-
 interface TokenPayload extends jwt.JwtPayload {
   sub: string;
-  role: UserRole;
+  role: Role;
 }
 
 export function ensureAuthenticated(

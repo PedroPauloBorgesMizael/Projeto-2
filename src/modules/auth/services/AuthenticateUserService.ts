@@ -13,8 +13,8 @@ export class AuthenticateUserService {
       throw new Error("Invalid credentials");
     }
 
-    if (!user.isActive) {
-      throw new Error("User is inactive");
+    if (user.status !== "ACTIVE") {
+      throw new Error("Inactive user");
     }
 
     const passwordMatch = await compare(password, user.password);

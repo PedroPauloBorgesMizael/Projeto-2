@@ -1,7 +1,11 @@
 export type UserRole =
   | "ADMIN"
+  | "MANAGER"
+  | "ASSISTANT"
   | "TECHNICIAN"
   | "REQUESTER";
+
+export type UserStatus = "ACTIVE" | "INACTIVE";
 
 export class User {
   id!: string;
@@ -12,12 +16,15 @@ export class User {
 
   role!: UserRole;
 
-  isActive!: boolean;
+  status!: UserStatus;
 
   createdAt!: Date;
-  updatedAt!: Date;
+  deletedAt?: Date | null;
+  deactivatedAt?: Date | null;
+  deactivatedBy?: string | null;
+  deactivationReason?: string | null;
 
-  constructor(props: User) {
+  constructor(props: Partial<User>) {
     Object.assign(this, props);
   }
 }

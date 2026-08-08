@@ -2,8 +2,8 @@ import { Request, Response } from "express";
 import { CreateUserService } from "../services/CreateUserService";
 import { ListUsersService } from "../services/ListUsersService";
 import { DeleteUserService } from "../services/DeleteUserService";
-import { ActivateUserService } from "../services/ActivateUserService";
-import { DeactivateUserService } from "../services/DeactivateUserService";
+import { ChangeUserStatusService } from "../services/ChangeUserStatusService";
+import { getPaginationParams } from "@/shared/utils/pagination";
 
 export class UserController {
 
@@ -50,52 +50,51 @@ export class UserController {
     }
 
     /**
- * @swagger
- * /users:
- *   get:
- *     summary: Listar usuários
- *     security:
- *       - bearerAuth: []
- *     tags: [Users]
- *     responses:
- *       200:
- *         description: Lista de usuários
- */
-    async list(request: Request, response: Response) {
-        const service = new ListUsersService();
-
-        const result = await service.execute();
-
-        return response.json(result);
-    }
-
-    /**
      * @swagger
-     * /users/{id}/deactivate:
-     *   patch:
-     *     summary: Desativar usuário
+     * /users:
+     *   get:
+     *     summary: Listar usuários
      *     security:
      *       - bearerAuth: []
      *     tags: [Users]
      *     parameters:
-     *       - in: path
-     *         name: id
-     *         required: true
+     *       - in: query
+     *         name: page
+     *         schema:
+     *           type: integer
+     *       - in: query
+     *         name: limit
+     *         schema:
+     *           type: integer
+     *       - in: query
+     *         name: name
+     *         schema:
+     *           type: string
+     *       - in: query
+     *         name: role
+     *         schema:
+     *           type: string
+     *       - in: query
+     *         name: status
      *         schema:
      *           type: string
      *     responses:
      *       200:
-     *         description: Usuário desativado
-     *       404:
-     *         description: Usuário não encontrado
+     *         description: Lista de usuários com paginação
      */
-    async deactivate(request: Request, response: Response) {
-        const { id } = request.params;
+    async list(request: Request, response: Response) {
+        const pagination = getPaginationParams(request.query);
+        const { name, role, status } = request.query;
 
-        const service = new DeactivateUserService();
+        const service = new ListUsersService();
 
         const result = await service.execute({
-            userId: id,
+            pagination,
+            filters: {
+                name: name as string,
+                role: role as string,
+                status: status as string
+            }
         });
 
         return response.json(result);
@@ -103,9 +102,9 @@ export class UserController {
 
     /**
      * @swagger
-     * /users/{id}/activate:
+     * /users/{id}/status:
      *   patch:
-     *     summary: Ativar usuário
+     *     summary: Alterar status do usuário (ACTIVE/INACTIVE)
      *     security:
      *       - bearerAuth: []
      *     tags: [Users]
@@ -115,19 +114,34 @@ export class UserController {
      *         required: true
      *         schema:
      *           type: string
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             properties:
+     *               status:
+     *                 type: string
+     *                 example: INACTIVE
      *     responses:
      *       200:
-     *         description: Usuário ativado
+     *         description: Status do usuário alterado
      *       404:
      *         description: Usuário não encontrado
      */
-    async activate(request: Request, response: Response) {
+    async changeStatus(request: Request, response: Response) {
         const { id } = request.params;
+        const { status } = request.body;
+        // adminId viria do request.user.id se estiver autenticado
+        const adminId = request.user?.id || "SYSTEM";
 
-        const service = new ActivateUserService();
+        const service = new ChangeUserStatusService();
 
         const result = await service.execute({
             userId: id,
+            status,
+            adminId
         });
 
         return response.json(result);
@@ -137,7 +151,7 @@ export class UserController {
     * @swagger
     * /users/{id}:
     *   delete:
-    *     summary: Excluir usuário
+    *     summary: Excluir usuário (Soft Delete)
     *     security:
     *       - bearerAuth: []
     *     tags: [Users]

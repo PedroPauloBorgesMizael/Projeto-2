@@ -15,7 +15,7 @@ export class CreateUserService {
   }: CreateUserDTO) {
 
     if (
-      !["ADMIN", "TECHNICIAN", "REQUESTER"]
+      !["ADMIN", "MANAGER", "ASSISTANT", "TECHNICIAN", "REQUESTER"]
         .includes(role)
     ) {
       throw new Error("Invalid role");
@@ -36,7 +36,7 @@ export class CreateUserService {
         name,
         email,
         password: passwordHash,
-        role: role as UserRole,
+        role: role as any,
       });
 
     return user;

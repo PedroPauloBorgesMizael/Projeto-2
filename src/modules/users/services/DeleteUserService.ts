@@ -26,7 +26,7 @@ export class DeleteUserService {
       );
     }
 
-    await this.repository.delete(userId);
+    await this.repository.softDelete(userId);
 
     return {
       message: "User deleted successfully",

@@ -12,9 +12,7 @@ routes.post("/", controller.create);
 
 routes.get("/", controller.list);
 
-routes.patch("/:id/deactivate", controller.deactivate);
-
-routes.patch("/:id/activate", controller.activate);
+routes.patch("/:id/status", controller.changeStatus);
 
 routes.delete("/:id", controller.delete);
 
