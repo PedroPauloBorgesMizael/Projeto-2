@@ -7,7 +7,8 @@ export class AssignTechnicianService {
   async execute({
     ticketId,
     technicianId,
-  }: AssignTechnicianDTO) {
+    userId,
+  }: AssignTechnicianDTO & { userId: string }) {
 
     const technician =
       await this.repository.findUserById(technicianId);
@@ -25,6 +26,13 @@ export class AssignTechnicianService {
         ticketId,
         technicianId,
       });
+
+    await this.repository.createHistory({
+        ticketId,
+        userId,
+        action: "ASSIGNED",
+        newValue: technicianId
+    });
 
     return ticket;
   }
