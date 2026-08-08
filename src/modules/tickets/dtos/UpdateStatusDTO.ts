@@ -1,4 +1,7 @@
+import { TicketStatus } from "@prisma/client";
+
 export interface UpdateStatusDTO {
     ticketId: string;
-    status: "NEW" | "IN_PROGRESS" | "PENDING" | "CLOSED";
+    status: TicketStatus;
+    userId: string;
 }

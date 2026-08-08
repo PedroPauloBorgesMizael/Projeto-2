@@ -8,56 +8,149 @@ datasource db {
 }
 
 model User {
-  id               String    @id @default(uuid())
-  name             String
-  email            String    @unique
-  password         String
-  role             Role
-  isActive         Boolean   @default(true)
-  createdAt        DateTime  @default(now())
+  id                 String     @id @default(uuid())
+  name               String
+  email              String     @unique
+  password           String
+  role               Role
+  status             UserStatus @default(ACTIVE)
+  createdAt          DateTime   @default(now())
+  deletedAt          DateTime?
+  deactivatedAt      DateTime?
+  deactivatedBy      String?
+  deactivationReason String?
+
   comments         Comment[]
   ticketsRequested Ticket[]  @relation("Requester")
   ticketsAssigned  Ticket[]  @relation("Technician")
 }
 
+model Team {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  tickets     Ticket[]
+}
+
+model Category {
+  id          String     @id @default(uuid())
+  name        String
+  description String?
+  parentId    String?
+  parent      Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children    Category[] @relation("CategoryHierarchy")
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  tickets     Ticket[]
+}
+
+model Location {
+  id          String     @id @default(uuid())
+  name        String
+  description String?
+  parentId    String?
+  parent      Location?  @relation("LocationHierarchy", fields: [parentId], references: [id])
+  children    Location[] @relation("LocationHierarchy")
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  tickets     Ticket[]
+}
+
 model Ticket {
-  id           String       @id @default(uuid())
+  id           String         @id @default(uuid())
   title        String
   description  String
-  category     String
+  category     String? // Legacy category string
+  categoryId   String?
+  categoryRef  Category?      @relation(fields: [categoryId], references: [id])
   priority     TicketPriority @default(MEDIUM)
-  status       TicketStatus @default(NEW)
-  location     String
+  status       TicketStatus   @default(NEW)
+  location     String? // Legacy location string
+  locationId   String?
+  locationRef  Location?      @relation(fields: [locationId], references: [id])
   requesterId  String
   technicianId String?
-  createdAt    DateTime     @default(now())
+  teamId       String?
+  team         Team?          @relation(fields: [teamId], references: [id])
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
   completedAt  DateTime?
-  comments     Comment[]
-  requester    User         @relation("Requester", fields: [requesterId], references: [id])
-  technician   User?        @relation("Technician", fields: [technicianId], references: [id])
+  deletedAt    DateTime?
+  slaTargetDate DateTime?
+  slaBreached   Boolean       @default(false)
+  olaTargetDate DateTime?
+
+  comments    Comment[]
+  attachments Attachment[]
+  history     TicketHistory[]
+  requester   User      @relation("Requester", fields: [requesterId], references: [id])
+  technician  User?     @relation("Technician", fields: [technicianId], references: [id])
+}
+
+model Attachment {
+  id        String   @id @default(uuid())
+  url       String
+  filename  String
+  mimetype  String
+  size      Int
+  ticketId  String
+  ticket    Ticket   @relation(fields: [ticketId], references: [id])
+  commentId String?
+  comment   Comment? @relation(fields: [commentId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model TicketHistory {
+  id            String       @id @default(uuid())
+  ticketId      String
+  ticket        Ticket       @relation(fields: [ticketId], references: [id])
+  userId        String
+  user          User         @relation(fields: [userId], references: [id])
+  action        TicketAction
+  previousValue String?
+  newValue      String?
+  createdAt     DateTime     @default(now())
 }
 
 model Comment {
-  id        String   @id @default(uuid())
+  id        String    @id @default(uuid())
   message   String
-  private   Boolean  @default(false)
+  private   Boolean   @default(false)
   ticketId  String
   userId    String
-  createdAt DateTime @default(now())
-  ticket    Ticket   @relation(fields: [ticketId], references: [id])
-  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime  @default(now())
+  deletedAt DateTime?
+  ticket    Ticket    @relation(fields: [ticketId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
+  attachments Attachment[]
 }
 
 enum Role {
   ADMIN
+  MANAGER
+  ASSISTANT
   TECHNICIAN
   REQUESTER
 }
 
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+}
+
 enum TicketStatus {
   NEW
+  OPEN
+  TRIAGE
+  ASSIGNED
   IN_PROGRESS
+  WAITING_USER
+  WAITING_PARTS
+  WAITING_VENDOR
   PENDING
+  RESOLVED
   CLOSED
 }
 
@@ -65,4 +158,13 @@ enum TicketPriority {
   LOW
   MEDIUM
   HIGH
+  CRITICAL
+}
+
+enum TicketAction {
+  CREATED
+  STATUS_CHANGED
+  ASSIGNED
+  COMMENT_ADDED
+  ATTACHMENT_ADDED
 }
