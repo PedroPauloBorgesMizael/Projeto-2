@@ -2,3 +2,5 @@ node_modules
 postgres-database
 .env
 /src/generated/prisma
+
+/dist
