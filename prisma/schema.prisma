@@ -21,8 +21,9 @@ model User {
   deactivationReason String?
 
   comments         Comment[]
-  ticketsRequested Ticket[]  @relation("Requester")
-  ticketsAssigned  Ticket[]  @relation("Technician")
+  ticketsRequested Ticket[]        @relation("Requester")
+  ticketsAssigned  Ticket[]        @relation("Technician")
+  TicketHistory    TicketHistory[]
 }
 
 model Team {
@@ -59,34 +60,34 @@ model Location {
 }
 
 model Ticket {
-  id           String         @id @default(uuid())
-  title        String
-  description  String
-  category     String? // Legacy category string
-  categoryId   String?
-  categoryRef  Category?      @relation(fields: [categoryId], references: [id])
-  priority     TicketPriority @default(MEDIUM)
-  status       TicketStatus   @default(NEW)
-  location     String? // Legacy location string
-  locationId   String?
-  locationRef  Location?      @relation(fields: [locationId], references: [id])
-  requesterId  String
-  technicianId String?
-  teamId       String?
-  team         Team?          @relation(fields: [teamId], references: [id])
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-  completedAt  DateTime?
-  deletedAt    DateTime?
+  id            String         @id @default(uuid())
+  title         String
+  description   String
+  category      String? // Legacy category string
+  categoryId    String?
+  categoryRef   Category?      @relation(fields: [categoryId], references: [id])
+  priority      TicketPriority @default(MEDIUM)
+  status        TicketStatus   @default(NEW)
+  location      String? // Legacy location string
+  locationId    String?
+  locationRef   Location?      @relation(fields: [locationId], references: [id])
+  requesterId   String
+  technicianId  String?
+  teamId        String?
+  team          Team?          @relation(fields: [teamId], references: [id])
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  completedAt   DateTime?
+  deletedAt     DateTime?
   slaTargetDate DateTime?
-  slaBreached   Boolean       @default(false)
+  slaBreached   Boolean        @default(false)
   olaTargetDate DateTime?
 
   comments    Comment[]
   attachments Attachment[]
   history     TicketHistory[]
-  requester   User      @relation("Requester", fields: [requesterId], references: [id])
-  technician  User?     @relation("Technician", fields: [technicianId], references: [id])
+  requester   User            @relation("Requester", fields: [requesterId], references: [id])
+  technician  User?           @relation("Technician", fields: [technicianId], references: [id])
 }
 
 model Attachment {
@@ -115,15 +116,15 @@ model TicketHistory {
 }
 
 model Comment {
-  id        String    @id @default(uuid())
-  message   String
-  private   Boolean   @default(false)
-  ticketId  String
-  userId    String
-  createdAt DateTime  @default(now())
-  deletedAt DateTime?
-  ticket    Ticket    @relation(fields: [ticketId], references: [id])
-  user      User      @relation(fields: [userId], references: [id])
+  id          String       @id @default(uuid())
+  message     String
+  private     Boolean      @default(false)
+  ticketId    String
+  userId      String
+  createdAt   DateTime     @default(now())
+  deletedAt   DateTime?
+  ticket      Ticket       @relation(fields: [ticketId], references: [id])
+  user        User         @relation(fields: [userId], references: [id])
   attachments Attachment[]
 }
 
