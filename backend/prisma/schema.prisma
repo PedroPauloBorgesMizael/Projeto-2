@@ -1,0 +1,172 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                 String          @id @default(uuid())
+  name               String
+  email              String          @unique
+  password           String
+  role               Role
+  createdAt          DateTime        @default(now())
+  deactivatedAt      DateTime?
+  deactivatedBy      String?
+  deactivationReason String?
+  deletedAt          DateTime?
+  status             UserStatus      @default(ACTIVE)
+  locationId         String?
+  location           Location?       @relation("UserLocation", fields: [locationId], references: [id])
+  comments           Comment[]
+  ticketsRequested   Ticket[]        @relation("Requester")
+  ticketsAssigned    Ticket[]        @relation("Technician")
+  TicketHistory      TicketHistory[]
+}
+
+model Team {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  tickets     Ticket[]
+}
+
+model Category {
+  id          String     @id @default(uuid())
+  name        String
+  description String?
+  parentId    String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  parent      Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children    Category[] @relation("CategoryHierarchy")
+  tickets     Ticket[]
+}
+
+model Location {
+  id          String     @id @default(uuid())
+  name        String
+  description String?
+  parentId    String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  parent      Location?  @relation("LocationHierarchy", fields: [parentId], references: [id])
+  children    Location[] @relation("LocationHierarchy")
+  tickets     Ticket[]
+  users       User[]     @relation("UserLocation")
+}
+
+model Ticket {
+  id            String          @id @default(uuid())
+  title         String
+  description   String
+  category      String?
+  status        TicketStatus    @default(NEW)
+  location      String?
+  requesterId   String
+  technicianId  String?
+  createdAt     DateTime        @default(now())
+  completedAt   DateTime?
+  priority      TicketPriority  @default(MEDIUM)
+  categoryId    String?
+  deletedAt     DateTime?
+  locationId    String?
+  olaTargetDate DateTime?
+  slaBreached   Boolean         @default(false)
+  slaTargetDate DateTime?
+  teamId        String?
+  updatedAt     DateTime        @updatedAt
+  attachments   Attachment[]
+  comments      Comment[]
+  categoryRef   Category?       @relation(fields: [categoryId], references: [id])
+  locationRef   Location?       @relation(fields: [locationId], references: [id])
+  requester     User            @relation("Requester", fields: [requesterId], references: [id])
+  team          Team?           @relation(fields: [teamId], references: [id])
+  technician    User?           @relation("Technician", fields: [technicianId], references: [id])
+  history       TicketHistory[]
+}
+
+model Attachment {
+  id        String   @id @default(uuid())
+  url       String
+  filename  String
+  mimetype  String
+  size      Int
+  ticketId  String
+  commentId String?
+  createdAt DateTime @default(now())
+  comment   Comment? @relation(fields: [commentId], references: [id])
+  ticket    Ticket   @relation(fields: [ticketId], references: [id])
+}
+
+model TicketHistory {
+  id            String       @id @default(uuid())
+  ticketId      String
+  userId        String
+  action        TicketAction
+  previousValue String?
+  newValue      String?
+  createdAt     DateTime     @default(now())
+  ticket        Ticket       @relation(fields: [ticketId], references: [id])
+  user          User         @relation(fields: [userId], references: [id])
+}
+
+model Comment {
+  id          String       @id @default(uuid())
+  message     String
+  private     Boolean      @default(false)
+  ticketId    String
+  userId      String
+  createdAt   DateTime     @default(now())
+  deletedAt   DateTime?
+  attachments Attachment[]
+  ticket      Ticket       @relation(fields: [ticketId], references: [id])
+  user        User         @relation(fields: [userId], references: [id])
+}
+
+enum Role {
+  ADMIN
+  TECHNICIAN
+  REQUESTER
+  MANAGER
+  ASSISTANT
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum TicketStatus {
+  NEW
+  IN_PROGRESS
+  PENDING
+  CLOSED
+  OPEN
+  TRIAGE
+  ASSIGNED
+  WAITING_USER
+  WAITING_PARTS
+  WAITING_VENDOR
+  RESOLVED
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum TicketAction {
+  CREATED
+  STATUS_CHANGED
+  ASSIGNED
+  COMMENT_ADDED
+  ATTACHMENT_ADDED
+}
