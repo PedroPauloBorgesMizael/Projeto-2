@@ -7,6 +7,14 @@ export class AuthenticateUserService {
   async execute({ email, password }: any) {
     const user = await prisma.user.findUnique({
       where: { email },
+      include: {
+        location: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
     });
 
     if (!user) {

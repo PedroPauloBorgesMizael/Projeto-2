@@ -2,5 +2,6 @@ export interface CreateUserDTO {
   name: string;
   email: string;
   password: string;
-  role: "ADMIN" | "TECHNICIAN" | "REQUESTER";
+  role: "ADMIN" | "MANAGER" | "ASSISTANT" | "TECHNICIAN" | "REQUESTER";
+  locationId?: string;
 }

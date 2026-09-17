@@ -12,6 +12,7 @@ export class CreateUserService {
     email,
     password,
     role,
+    locationId,
   }: CreateUserDTO) {
 
     if (
@@ -37,6 +38,7 @@ export class CreateUserService {
         email,
         password: passwordHash,
         role: role as any,
+        locationId,
       });
 
     return user;

@@ -48,27 +48,49 @@ O sistema permite que usuários abram chamados para problemas relacionados à ma
 
 ---
 
-# Instalação
+---
 
-## Clonar o projeto
+# Execução Rápida com Docker (Recomendado) 🐳
+
+Todo o projeto (Banco de Dados PostgreSQL, API Backend e Frontend Web) está configurado para rodar através de containers Docker com um único comando.
+
+### 1. Iniciar toda a aplicação
+
+Na pasta raiz do projeto, execute:
 
 ```bash
-git clone <url-do-repositorio>
+docker compose up --build -d
 ```
 
-## Entrar na pasta
+Isso irá:
+1. Subir o container do banco de dados **PostgreSQL 16**.
+2. Executar as migrations do **Prisma** e iniciar a **API Backend** na porta `3000`.
+3. Compilar e servir a interface **Frontend Web** com **Nginx** na porta `5173`.
+
+### 2. Popular o banco com dados de teste (Seed)
+
+Com os containers em execução, execute:
 
 ```bash
-cd nome-do-projeto
+docker compose exec backend npm run prisma:seed
 ```
 
-## Instalar dependências
+### 3. Acessar os serviços
+
+* **Frontend Web**: [http://localhost:5173](http://localhost:5173)
+* **API Backend**: [http://localhost:3000](http://localhost:3000)
+* **Documentação Swagger**: [http://localhost:3000/docs](http://localhost:3000/docs)
+* **PostgreSQL**: `localhost:5433` (Usuário: `admin`, Senha: `admin123`, Banco: `help_home`)
+
+### 4. Parar os containers
 
 ```bash
-npm install
+docker compose down
 ```
 
 ---
+
+# Instalação Local (Sem Docker)
 
 # Configuração do ambiente
 

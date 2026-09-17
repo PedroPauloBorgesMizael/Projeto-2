@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../services/api';
 import { Plus, Search, Filter, X } from 'lucide-react';
@@ -128,8 +128,8 @@ export function TicketList() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 p-6">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-slate-50 p-4 sm:p-6 lg:p-8">
+      <div className="w-full max-w-[92%] mx-auto">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
           <div>
             <h1 className="text-2xl font-bold text-slate-800">Minhas Solicitações</h1>
@@ -165,7 +165,7 @@ export function TicketList() {
           </div>
 
           {showFilters && (
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 pt-4 border-t border-slate-200">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 pt-4 border-t border-slate-200">
               <div>
                 <label className="block text-xs font-medium text-slate-500 mb-1">Status</label>
                 <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="w-full p-2 border border-slate-300 rounded-md text-sm">
@@ -276,7 +276,7 @@ export function TicketList() {
                             </span>
                           )}
                         </div>
-                        <div className="text-sm text-slate-500 truncate max-w-xs">{ticket.description}</div>
+                        <div className="text-sm text-slate-500 truncate max-w-sm sm:max-w-md md:max-w-lg xl:max-w-2xl">{ticket.description}</div>
                       </td>
                       <td className="px-6 py-4">
                         <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${getStatusColor(ticket.status)}`}>

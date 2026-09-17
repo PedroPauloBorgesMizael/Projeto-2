@@ -172,8 +172,8 @@ export function TicketDetails() {
   const isStaff = user?.role === 'ADMIN' || user?.role === 'TECHNICIAN' || user?.role === 'MANAGER';
 
   return (
-    <div className="min-h-screen bg-slate-50 p-6">
-      <div className="max-w-6xl mx-auto flex flex-col lg:flex-row gap-6">
+    <div className="min-h-screen bg-slate-50 p-4 sm:p-6 lg:p-8">
+      <div className="w-full max-w-[92%] mx-auto flex flex-col lg:flex-row gap-6">
         <div className="flex-1">
           <button
             onClick={() => navigate('/tickets')}
@@ -183,7 +183,7 @@ export function TicketDetails() {
             Voltar
           </button>
 
-          <div className="bg-white rounded-lg shadow-sm p-8 mb-6">
+          <div className="bg-white rounded-lg shadow-sm p-6 sm:p-8 mb-6">
             <div className="flex flex-wrap justify-between items-start gap-4 mb-6">
               <div>
                 <h1 className="text-2xl font-bold text-slate-800 mb-2">{ticket.title}</h1>
@@ -201,7 +201,7 @@ export function TicketDetails() {
               <p className="text-slate-800 whitespace-pre-wrap">{ticket.description}</p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 border-t border-slate-200 mt-6 pt-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 border-t border-slate-200 mt-6 pt-6">
               <div>
                 <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wider mb-1">Prioridade</h3>
                 <p className="text-slate-800">{ticket.priority}</p>
@@ -304,7 +304,7 @@ export function TicketDetails() {
 
         {/* Gerenciamento Lateral (Apenas Staff) */}
         {isStaff && (
-          <div className="w-full lg:w-80 space-y-6">
+          <div className="w-full lg:w-80 xl:w-96 space-y-6">
             <div className="bg-white rounded-lg shadow-sm p-6">
               <h3 className="text-lg font-bold text-slate-800 mb-4">Gerenciamento</h3>
               

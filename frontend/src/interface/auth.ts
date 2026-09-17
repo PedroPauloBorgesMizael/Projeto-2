@@ -4,6 +4,10 @@ export interface User {
   email: string;
   role: string;
   locationId?: string;
+  location?: {
+    id: string;
+    name: string;
+  } | null;
 }
 
 export interface AuthResponse {

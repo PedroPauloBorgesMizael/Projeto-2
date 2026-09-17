@@ -3,6 +3,8 @@ import { Login } from './pages/Login';
 import { TicketList } from './pages/Tickets/TicketList';
 import { TicketCreate } from './pages/Tickets/TicketCreate';
 import { TicketDetails } from './pages/Tickets/TicketDetails';
+import { UserList } from './pages/Users/UserList';
+import { AuxiliarySettings } from './pages/Settings/AuxiliarySettings';
 import { useAuth } from './hooks/useAuth';
 
 import { Layout } from './components/Layout';
@@ -38,6 +40,22 @@ function App() {
           element={
             <PrivateRoute>
               <TicketDetails />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/users"
+          element={
+            <PrivateRoute>
+              <UserList />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/auxiliary"
+          element={
+            <PrivateRoute>
+              <AuxiliarySettings />
             </PrivateRoute>
           }
         />

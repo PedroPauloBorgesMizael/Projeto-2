@@ -57,6 +57,13 @@ export class UserRepository {
           role: true,
           status: true,
           createdAt: true,
+          locationId: true,
+          location: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
         },
         orderBy: {
           name: "asc",

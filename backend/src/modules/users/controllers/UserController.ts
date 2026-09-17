@@ -35,7 +35,7 @@ export class UserController {
      */
 
     async create(request: Request, response: Response) {
-        const { name, email, password, role } = request.body;
+        const { name, email, password, role, locationId } = request.body;
 
         const service = new CreateUserService();
 
@@ -44,6 +44,7 @@ export class UserController {
             email,
             password,
             role,
+            locationId,
         });
 
         return response.status(201).json(result);
