@@ -4,4 +4,5 @@ export interface CreateUserDTO {
   password: string;
   role: "ADMIN" | "MANAGER" | "ASSISTANT" | "TECHNICIAN" | "REQUESTER";
   locationId?: string;
+  teamIds?: string[];
 }

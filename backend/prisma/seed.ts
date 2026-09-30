@@ -12,6 +12,7 @@ async function main() {
   await prisma.comment.deleteMany();
   await prisma.ticket.deleteMany();
   await prisma.category.deleteMany();
+  await prisma.team.deleteMany();
   // Location and users
   await prisma.user.updateMany({ data: { locationId: null } });
   await prisma.location.deleteMany();
@@ -54,6 +55,36 @@ async function main() {
     create: { name: "Maria Cliente", email: "maria@helphome.com", password, role: Role.REQUESTER, locationId: locAp102.id },
   });
 
+  console.log("🏢 Criando Equipes e vinculando membros...");
+  const teamEletrica = await prisma.team.create({
+    data: {
+      name: "Equipe Elétrica",
+      description: "Atendimento a chamados elétricos e iluminação",
+      members: {
+        connect: [{ id: tech1.id }, { id: admin.id }],
+      },
+    },
+  });
+
+  const teamHidraulica = await prisma.team.create({
+    data: {
+      name: "Equipe Hidráulica",
+      description: "Atendimento a vazamentos e encanamento",
+      members: {
+        connect: [{ id: tech1.id }],
+      },
+    },
+  });
+
+  const teamGeral = await prisma.team.create({
+    data: {
+      name: "Manutenção Geral",
+      description: "Serviços prediais diversos e alvenaria",
+    },
+  });
+
+  const teams = [teamEletrica, teamHidraulica, teamGeral];
+
   const requesters = [client1, client2];
   const technicians = [tech1];
 
@@ -77,6 +108,7 @@ async function main() {
         priority: priorities[Math.floor(Math.random() * priorities.length)],
         status,
         locationId: location.id,
+        teamId: teams[i % teams.length].id,
         requesterId: requester.id,
         technicianId: status === TicketStatus.NEW ? null : technician.id,
         completedAt: (status === TicketStatus.CLOSED || status === TicketStatus.RESOLVED) ? new Date() : null,

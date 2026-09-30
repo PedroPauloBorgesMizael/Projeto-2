@@ -26,16 +26,36 @@ export interface LocationItem {
   children?: LocationItem[];
 }
 
+export interface TeamMember {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  status?: string;
+}
+
 export interface TeamItem {
   id: string;
   name: string;
   description?: string | null;
   createdAt: string;
   updatedAt?: string;
+  members?: TeamMember[];
+  _count?: {
+    members: number;
+    tickets?: number;
+  };
 }
 
 export interface CreateAuxiliaryPayload {
   name: string;
   description?: string;
   parentId?: string;
+  memberIds?: string[];
+}
+
+export interface UpdateTeamPayload {
+  name?: string;
+  description?: string;
+  memberIds?: string[];
 }

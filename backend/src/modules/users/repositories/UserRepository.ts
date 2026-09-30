@@ -1,5 +1,6 @@
 import { prisma } from "@/shared/database/prisma";
 import { CreateUserDTO } from "../dtos/CreateUserDTO";
+import { UpdateUserDTO } from "../dtos/UpdateUserDTO";
 import { Prisma, UserStatus } from "@prisma/client";
 
 export class UserRepository {
@@ -17,8 +18,43 @@ export class UserRepository {
   }
 
   async create(data: CreateUserDTO) {
+    const { name, email, password, role, locationId, teamIds } = data;
     return prisma.user.create({
-      data,
+      data: {
+        name,
+        email,
+        password,
+        role: role as any,
+        locationId,
+        ...(teamIds && teamIds.length > 0
+          ? {
+              teams: {
+                connect: teamIds.map((id) => ({ id })),
+              },
+            }
+          : {}),
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        status: true,
+        createdAt: true,
+        locationId: true,
+        location: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        teams: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
     });
   }
 
@@ -64,6 +100,12 @@ export class UserRepository {
               name: true,
             },
           },
+          teams: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
         },
         orderBy: {
           name: "asc",
@@ -88,6 +130,60 @@ export class UserRepository {
       where: {
         id: userId,
       },
+      include: {
+        location: true,
+        teams: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+  }
+
+  async update(userId: string, data: UpdateUserDTO) {
+    const { name, email, password, role, locationId, teamIds } = data;
+
+    return prisma.user.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        ...(name ? { name } : {}),
+        ...(email ? { email } : {}),
+        ...(password ? { password } : {}),
+        ...(role ? { role: role as any } : {}),
+        ...(locationId !== undefined ? { locationId } : {}),
+        ...(teamIds !== undefined
+          ? {
+              teams: {
+                set: teamIds.map((id) => ({ id })),
+              },
+            }
+          : {}),
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        status: true,
+        createdAt: true,
+        locationId: true,
+        location: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        teams: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
     });
   }
 
@@ -99,7 +195,7 @@ export class UserRepository {
       data: {
         status,
         deactivatedAt,
-        deactivatedBy
+        deactivatedBy,
       },
     });
   }
@@ -111,7 +207,7 @@ export class UserRepository {
       },
       data: {
         deletedAt: new Date(),
-        status: "INACTIVE"
+        status: "INACTIVE",
       },
     });
   }
@@ -125,6 +221,7 @@ export class UserRepository {
         ticketsRequested: true,
         ticketsAssigned: true,
         comments: true,
+        teams: true,
       },
     });
   }

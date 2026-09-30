@@ -12,6 +12,8 @@ routes.post("/", controller.create);
 
 routes.get("/", controller.list);
 
+routes.put("/:id", controller.update);
+
 routes.patch("/:id/status", controller.changeStatus);
 
 routes.delete("/:id", controller.delete);

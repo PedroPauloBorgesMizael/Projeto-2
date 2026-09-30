@@ -50,6 +50,16 @@ export class TicketRepository {
                         user: { select: { id: true, name: true, email: true } }
                     },
                     orderBy: { createdAt: "desc" }
+                },
+                approvals: {
+                    include: {
+                        approvalType: true,
+                        requestedBy: { select: { id: true, name: true, email: true, role: true } },
+                        approverUser: { select: { id: true, name: true, email: true, role: true } },
+                        approverTeam: { select: { id: true, name: true } },
+                        decidedBy: { select: { id: true, name: true, email: true, role: true } }
+                    },
+                    orderBy: { createdAt: "desc" }
                 }
             } as any,
         });

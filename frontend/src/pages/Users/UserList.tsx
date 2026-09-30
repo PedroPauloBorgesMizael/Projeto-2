@@ -17,12 +17,14 @@ import {
   Mail,
   User as UserIcon,
   MapPin,
-  CheckCircle2
+  CheckCircle2,
+  Briefcase,
+  Pencil
 } from 'lucide-react';
 import { userService } from '../../services/userService';
 import { auxiliaryService } from '../../services/auxiliaryService';
 import type { UserItem, UserRole, UserStatus } from '../../interface/user';
-import type { LocationItem } from '../../interface/auxiliary';
+import type { LocationItem, TeamItem } from '../../interface/auxiliary';
 import { Button } from '../../components/Button';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -33,6 +35,7 @@ export function UserList() {
   // Data states
   const [users, setUsers] = useState<UserItem[]>([]);
   const [locations, setLocations] = useState<LocationItem[]>([]);
+  const [teams, setTeams] = useState<TeamItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [meta, setMeta] = useState({ total: 0, page: 1, limit: 10, totalPages: 1 });
 
@@ -42,7 +45,7 @@ export function UserList() {
   const [statusFilter, setStatusFilter] = useState('');
   const [page, setPage] = useState(1);
 
-  // Modal states
+  // Modal states: Create User
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState('');
@@ -51,7 +54,22 @@ export function UserList() {
     email: '',
     password: '',
     role: 'REQUESTER' as UserRole,
-    locationId: ''
+    locationId: '',
+    teamIds: [] as string[]
+  });
+
+  // Modal states: Edit User
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [editError, setEditError] = useState('');
+  const [editFormData, setEditFormData] = useState({
+    id: '',
+    name: '',
+    email: '',
+    password: '',
+    role: 'REQUESTER' as UserRole,
+    locationId: '',
+    teamIds: [] as string[]
   });
 
   // Action states (Delete / Status Change)
@@ -87,15 +105,19 @@ export function UserList() {
   }, [page, search, roleFilter, statusFilter]);
 
   useEffect(() => {
-    const loadLocations = async () => {
+    const loadAuxiliaries = async () => {
       try {
-        const locs = await auxiliaryService.listLocations();
+        const [locs, teamList] = await Promise.all([
+          auxiliaryService.listLocations(),
+          auxiliaryService.listTeams()
+        ]);
         setLocations(locs);
+        setTeams(teamList);
       } catch (err) {
-        console.error('Erro ao carregar localizações:', err);
+        console.error('Erro ao carregar dados auxiliares:', err);
       }
     };
-    loadLocations();
+    loadAuxiliaries();
   }, []);
 
   const showFeedback = (type: 'success' | 'error', text: string) => {
@@ -116,10 +138,11 @@ export function UserList() {
         email: formData.email,
         password: formData.password,
         role: formData.role,
-        locationId: formData.locationId || undefined
+        locationId: formData.locationId || undefined,
+        teamIds: formData.teamIds.length > 0 ? formData.teamIds : undefined
       });
       setIsCreateOpen(false);
-      setFormData({ name: '', email: '', password: '', role: 'REQUESTER', locationId: '' });
+      setFormData({ name: '', email: '', password: '', role: 'REQUESTER', locationId: '', teamIds: [] });
       showFeedback('success', 'Usuário cadastrado com sucesso!');
       fetchUsers();
     } catch (err: unknown) {
@@ -129,6 +152,47 @@ export function UserList() {
       setCreateError(errorMsg);
     } finally {
       setCreating(false);
+    }
+  };
+
+  const handleOpenEdit = (user: UserItem) => {
+    setEditFormData({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      password: '',
+      role: user.role,
+      locationId: user.locationId || '',
+      teamIds: user.teams?.map((t) => t.id) || []
+    });
+    setEditError('');
+    setIsEditOpen(true);
+  };
+
+  const handleEditSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setEditError('');
+    setEditing(true);
+
+    try {
+      await userService.updateUser(editFormData.id, {
+        name: editFormData.name,
+        email: editFormData.email,
+        password: editFormData.password ? editFormData.password : undefined,
+        role: editFormData.role,
+        locationId: editFormData.locationId || null,
+        teamIds: editFormData.teamIds
+      });
+      setIsEditOpen(false);
+      showFeedback('success', 'Usuário atualizado com sucesso!');
+      fetchUsers();
+    } catch (err: unknown) {
+      const errorMsg = (err as { response?: { data?: { error?: string; message?: string } } })?.response?.data?.error ||
+        (err as { response?: { data?: { error?: string; message?: string } } })?.response?.data?.message ||
+        'Erro ao atualizar usuário. Verifique os dados.';
+      setEditError(errorMsg);
+    } finally {
+      setEditing(false);
     }
   };
 
@@ -251,7 +315,7 @@ export function UserList() {
               <div>
                 <h1 className="text-2xl font-bold text-slate-900">Gestão de Usuários</h1>
                 <p className="text-slate-500 text-sm">
-                  Gerencie contas, permissões de acesso e status dos colaboradores e solicitantes
+                  Gerencie contas, equipes de atendimento, permissões e status dos colaboradores
                 </p>
               </div>
             </div>
@@ -324,7 +388,7 @@ export function UserList() {
             {(search || roleFilter || statusFilter) && (
               <button
                 onClick={clearFilters}
-                className="flex items-center justify-center gap-1.5 px-3 py-2 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-200"
+                className="flex items-center justify-center gap-1.5 px-3 py-2 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-200 cursor-pointer"
               >
                 <X size={16} />
                 <span>Limpar</span>
@@ -352,7 +416,7 @@ export function UserList() {
               {(search || roleFilter || statusFilter) && (
                 <button
                   onClick={clearFilters}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium rounded-lg transition-colors"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium rounded-lg transition-colors cursor-pointer"
                 >
                   <X size={16} />
                   Limpar Filtros
@@ -367,6 +431,7 @@ export function UserList() {
                     <th className="px-6 py-4">Usuário</th>
                     <th className="px-6 py-4">Perfil / Cargo</th>
                     <th className="px-6 py-4">Localização</th>
+                    <th className="px-6 py-4">Equipes / Grupos</th>
                     <th className="px-6 py-4">Status</th>
                     <th className="px-6 py-4">Criado em</th>
                     <th className="px-6 py-4 text-right">Ações</th>
@@ -413,6 +478,25 @@ export function UserList() {
                         )}
                       </td>
 
+                      {/* Teams / Groups */}
+                      <td className="px-6 py-4 text-xs">
+                        {item.teams && item.teams.length > 0 ? (
+                          <div className="flex flex-wrap gap-1.5 max-w-[220px]">
+                            {item.teams.map((team) => (
+                              <span
+                                key={team.id}
+                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-purple-50 text-purple-700 border border-purple-200"
+                              >
+                                <Briefcase size={10} className="text-purple-500" />
+                                {team.name}
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="text-slate-400 italic">Nenhum grupo</span>
+                        )}
+                      </td>
+
                       {/* Status */}
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span
@@ -443,11 +527,20 @@ export function UserList() {
                       {/* Actions */}
                       <td className="px-6 py-4 whitespace-nowrap text-right">
                         <div className="flex items-center justify-end gap-2">
+                          {/* Edit User Button */}
+                          <button
+                            onClick={() => handleOpenEdit(item)}
+                            title="Editar Usuário e Equipes"
+                            className="p-1.5 rounded-lg border border-slate-200 text-slate-600 hover:text-blue-600 hover:bg-blue-50 transition-colors cursor-pointer"
+                          >
+                            <Pencil size={16} />
+                          </button>
+
                           {/* Toggle Status Button */}
                           <button
                             onClick={() => setStatusActionUser(item)}
                             title={item.status === 'ACTIVE' ? 'Desativar Usuário' : 'Ativar Usuário'}
-                            className={`p-1.5 rounded-lg border text-xs font-medium transition-colors ${
+                            className={`p-1.5 rounded-lg border text-xs font-medium transition-colors cursor-pointer ${
                               item.status === 'ACTIVE'
                                 ? 'border-amber-200 text-amber-700 hover:bg-amber-50'
                                 : 'border-emerald-200 text-emerald-700 hover:bg-emerald-50'
@@ -465,7 +558,7 @@ export function UserList() {
                             <button
                               onClick={() => setUserToDelete(item)}
                               title="Excluir Usuário"
-                              className="p-1.5 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 transition-colors"
+                              className="p-1.5 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
                             >
                               <Trash2 size={16} />
                             </button>
@@ -491,7 +584,7 @@ export function UserList() {
                 <button
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page <= 1}
-                  className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-300 text-xs font-medium text-slate-600 hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                  className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-300 text-xs font-medium text-slate-600 hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
                 >
                   <ChevronLeft size={14} />
                   Anterior
@@ -502,7 +595,7 @@ export function UserList() {
                 <button
                   onClick={() => setPage((p) => Math.min(meta.totalPages, p + 1))}
                   disabled={page >= meta.totalPages}
-                  className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-300 text-xs font-medium text-slate-600 hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                  className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-300 text-xs font-medium text-slate-600 hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
                 >
                   Próxima
                   <ChevronRight size={14} />
@@ -516,7 +609,7 @@ export function UserList() {
       {/* Modal: Novo Usuário */}
       {isCreateOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-fade-in">
-          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full border border-slate-200 overflow-hidden">
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full border border-slate-200 overflow-hidden max-h-[90vh] flex flex-col">
             <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 bg-slate-50/50">
               <div className="flex items-center gap-2.5">
                 <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
@@ -526,13 +619,13 @@ export function UserList() {
               </div>
               <button
                 onClick={() => setIsCreateOpen(false)}
-                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg transition-colors"
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg transition-colors cursor-pointer"
               >
                 <X size={20} />
               </button>
             </div>
 
-            <form onSubmit={handleCreateSubmit} className="p-6 space-y-4">
+            <form onSubmit={handleCreateSubmit} className="p-6 space-y-4 overflow-y-auto flex-1">
               {createError && (
                 <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg flex items-start gap-2">
                   <AlertTriangle size={16} className="flex-shrink-0 mt-0.5" />
@@ -629,16 +722,246 @@ export function UserList() {
                 </div>
               </div>
 
+              {/* Equipes / Grupos */}
+              {teams.length > 0 && (
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                    Equipes / Grupos de Atendimento (Opcional)
+                  </label>
+                  <p className="text-xs text-slate-500 mb-2">
+                    Vincule este usuário a um ou mais grupos ({formData.teamIds.length} selecionados):
+                  </p>
+                  <div className="max-h-36 overflow-y-auto border border-slate-200 rounded-lg p-2 space-y-1 bg-slate-50/50">
+                    {teams.map((team) => {
+                      const isSelected = formData.teamIds.includes(team.id);
+                      return (
+                        <div
+                          key={team.id}
+                          onClick={() => {
+                            setFormData({
+                              ...formData,
+                              teamIds: isSelected
+                                ? formData.teamIds.filter((id) => id !== team.id)
+                                : [...formData.teamIds, team.id]
+                            });
+                          }}
+                          className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition-colors text-xs ${
+                            isSelected
+                              ? 'bg-purple-50 text-purple-900 border border-purple-200 font-medium'
+                              : 'hover:bg-white text-slate-700'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              readOnly
+                              className="rounded text-purple-600 focus:ring-purple-500 pointer-events-none"
+                            />
+                            <span className="font-semibold">{team.name}</span>
+                          </div>
+                          {team.description && (
+                            <span className="text-[11px] text-slate-400 truncate max-w-[150px]">
+                              {team.description}
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
               <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setIsCreateOpen(false)}
-                  className="px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+                  className="px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
                 >
                   Cancelar
                 </button>
                 <Button type="submit" loading={creating} className="px-5">
                   Cadastrar
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Editar Usuário */}
+      {isEditOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-fade-in">
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full border border-slate-200 overflow-hidden max-h-[90vh] flex flex-col">
+            <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+                  <Pencil size={20} />
+                </div>
+                <h3 className="font-bold text-slate-800 text-lg">Editar Usuário</h3>
+              </div>
+              <button
+                onClick={() => setIsEditOpen(false)}
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg transition-colors cursor-pointer"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <form onSubmit={handleEditSubmit} className="p-6 space-y-4 overflow-y-auto flex-1">
+              {editError && (
+                <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg flex items-start gap-2">
+                  <AlertTriangle size={16} className="flex-shrink-0 mt-0.5" />
+                  <span>{editError}</span>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                  Nome Completo <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                  <input
+                    type="text"
+                    required
+                    value={editFormData.name}
+                    onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
+                    className="w-full pl-9 pr-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-[#0a192f] focus:border-transparent outline-none transition-all"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                  E-mail <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                  <input
+                    type="email"
+                    required
+                    value={editFormData.email}
+                    onChange={(e) => setEditFormData({ ...editFormData, email: e.target.value })}
+                    className="w-full pl-9 pr-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-[#0a192f] focus:border-transparent outline-none transition-all"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                  Nova Senha (Opcional)
+                </label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                  <input
+                    type="password"
+                    placeholder="Deixe em branco para manter a atual"
+                    value={editFormData.password}
+                    onChange={(e) => setEditFormData({ ...editFormData, password: e.target.value })}
+                    className="w-full pl-9 pr-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-[#0a192f] focus:border-transparent outline-none transition-all"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                  Perfil de Acesso <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={editFormData.role}
+                  onChange={(e) => setEditFormData({ ...editFormData, role: e.target.value as UserRole })}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-[#0a192f] focus:border-transparent outline-none transition-all"
+                >
+                  <option value="REQUESTER">Solicitante (Morador / Usuário Comum)</option>
+                  <option value="TECHNICIAN">Técnico de Manutenção</option>
+                  <option value="ASSISTANT">Assistente Administrativo</option>
+                  <option value="MANAGER">Gerente Operacional</option>
+                  <option value="ADMIN">Administrador Geral</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                  Localização / Apartamento (Opcional)
+                </label>
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                  <select
+                    value={editFormData.locationId}
+                    onChange={(e) => setEditFormData({ ...editFormData, locationId: e.target.value })}
+                    className="w-full pl-9 pr-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-[#0a192f] focus:border-transparent outline-none transition-all"
+                  >
+                    <option value="">Nenhum local vinculado</option>
+                    {locations.map((loc) => (
+                      <option key={loc.id} value={loc.id}>
+                        {loc.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Equipes / Grupos */}
+              {teams.length > 0 && (
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                    Equipes / Grupos de Atendimento (Opcional)
+                  </label>
+                  <p className="text-xs text-slate-500 mb-2">
+                    Vincule este usuário a um ou mais grupos ({editFormData.teamIds.length} selecionados):
+                  </p>
+                  <div className="max-h-36 overflow-y-auto border border-slate-200 rounded-lg p-2 space-y-1 bg-slate-50/50">
+                    {teams.map((team) => {
+                      const isSelected = editFormData.teamIds.includes(team.id);
+                      return (
+                        <div
+                          key={team.id}
+                          onClick={() => {
+                            setEditFormData({
+                              ...editFormData,
+                              teamIds: isSelected
+                                ? editFormData.teamIds.filter((id) => id !== team.id)
+                                : [...editFormData.teamIds, team.id]
+                            });
+                          }}
+                          className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition-colors text-xs ${
+                            isSelected
+                              ? 'bg-purple-50 text-purple-900 border border-purple-200 font-medium'
+                              : 'hover:bg-white text-slate-700'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              readOnly
+                              className="rounded text-purple-600 focus:ring-purple-500 pointer-events-none"
+                            />
+                            <span className="font-semibold">{team.name}</span>
+                          </div>
+                          {team.description && (
+                            <span className="text-[11px] text-slate-400 truncate max-w-[150px]">
+                              {team.description}
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setIsEditOpen(false)}
+                  className="px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <Button type="submit" loading={editing} className="px-5">
+                  Salvar Alterações
                 </Button>
               </div>
             </form>
@@ -681,7 +1004,7 @@ export function UserList() {
               <button
                 type="button"
                 onClick={() => setStatusActionUser(null)}
-                className="px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+                className="px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
               >
                 Cancelar
               </button>
@@ -723,7 +1046,7 @@ export function UserList() {
               <button
                 type="button"
                 onClick={() => setUserToDelete(null)}
-                className="px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+                className="px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
               >
                 Cancelar
               </button>
@@ -731,7 +1054,7 @@ export function UserList() {
                 type="button"
                 onClick={handleDelete}
                 disabled={deleting}
-                className="px-5 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2"
+                className="px-5 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2 cursor-pointer"
               >
                 {deleting ? (
                   <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />

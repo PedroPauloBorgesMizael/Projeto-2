@@ -7,6 +7,7 @@ import teamRoutes from "@/modules/teams/routes";
 import categoryRoutes from "@/modules/categories/routes";
 import locationRoutes from "@/modules/locations/routes";
 import metricsRoutes from "@/modules/metrics/routes";
+import { approvalTypeRoutes, approvalRoutes } from "@/modules/approvals/routes";
 
 const routes = Router();
 
@@ -18,5 +19,7 @@ routes.use("/teams", teamRoutes);
 routes.use("/categories", categoryRoutes);
 routes.use("/locations", locationRoutes);
 routes.use("/metrics", metricsRoutes);
+routes.use("/approval-types", approvalTypeRoutes);
+routes.use("/approvals", approvalRoutes);
 
 export default routes;

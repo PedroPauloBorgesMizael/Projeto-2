@@ -14,6 +14,10 @@ export interface UserItem {
     id: string;
     name: string;
   };
+  teams?: Array<{
+    id: string;
+    name: string;
+  }>;
 }
 
 export interface PaginatedUsersResponse {
@@ -32,6 +36,16 @@ export interface CreateUserPayload {
   password?: string;
   role: UserRole;
   locationId?: string;
+  teamIds?: string[];
+}
+
+export interface UpdateUserPayload {
+  name?: string;
+  email?: string;
+  password?: string;
+  role?: UserRole;
+  locationId?: string | null;
+  teamIds?: string[];
 }
 
 export interface UserFilterParams {

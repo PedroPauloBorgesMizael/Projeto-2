@@ -2,6 +2,7 @@ import { api } from './api';
 import type {
   CreateUserPayload,
   PaginatedUsersResponse,
+  UpdateUserPayload,
   UserFilterParams,
   UserItem,
   UserStatus
@@ -26,6 +27,11 @@ export const userService = {
 
   async createUser(data: CreateUserPayload): Promise<UserItem> {
     const response = await api.post<UserItem>('/users', data);
+    return response.data;
+  },
+
+  async updateUser(id: string, data: UpdateUserPayload): Promise<UserItem> {
+    const response = await api.put<UserItem>(`/users/${id}`, data);
     return response.data;
   },
 

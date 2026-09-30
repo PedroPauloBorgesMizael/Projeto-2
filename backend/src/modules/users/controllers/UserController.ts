@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { CreateUserService } from "../services/CreateUserService";
 import { ListUsersService } from "../services/ListUsersService";
+import { UpdateUserService } from "../services/UpdateUserService";
 import { DeleteUserService } from "../services/DeleteUserService";
 import { ChangeUserStatusService } from "../services/ChangeUserStatusService";
 import { getPaginationParams } from "@/shared/utils/pagination";
@@ -29,13 +30,19 @@ export class UserController {
      *               role:
      *                 type: string
      *                 example: REQUESTER
+     *               locationId:
+     *                 type: string
+     *               teamIds:
+     *                 type: array
+     *                 items:
+     *                   type: string
      *     responses:
      *       201:
      *         description: Usuário criado com sucesso
      */
 
     async create(request: Request, response: Response) {
-        const { name, email, password, role, locationId } = request.body;
+        const { name, email, password, role, locationId, teamIds } = request.body;
 
         const service = new CreateUserService();
 
@@ -45,6 +52,7 @@ export class UserController {
             password,
             role,
             locationId,
+            teamIds,
         });
 
         return response.status(201).json(result);
@@ -143,6 +151,65 @@ export class UserController {
             userId: id,
             status,
             adminId
+        });
+
+        return response.json(result);
+    }
+
+    /**
+    * @swagger
+    * /users/{id}:
+    *   put:
+    *     summary: Atualizar dados e grupos do usuário
+    *     security:
+    *       - bearerAuth: []
+    *     tags: [Users]
+    *     parameters:
+    *       - in: path
+    *         name: id
+    *         required: true
+    *         schema:
+    *           type: string
+    *     requestBody:
+    *       required: true
+    *       content:
+    *         application/json:
+    *           schema:
+    *             type: object
+    *             properties:
+    *               name:
+    *                 type: string
+    *               email:
+    *                 type: string
+    *               password:
+    *                 type: string
+    *               role:
+    *                 type: string
+    *               locationId:
+    *                 type: string
+    *               teamIds:
+    *                 type: array
+    *                 items:
+    *                   type: string
+    *     responses:
+    *       200:
+    *         description: Usuário atualizado com sucesso
+    *       404:
+    *         description: Usuário não encontrado
+    */
+    async update(request: Request, response: Response) {
+        const { id } = request.params;
+        const { name, email, password, role, locationId, teamIds } = request.body;
+
+        const service = new UpdateUserService();
+
+        const result = await service.execute(id, {
+            name,
+            email,
+            password,
+            role,
+            locationId,
+            teamIds,
         });
 
         return response.json(result);

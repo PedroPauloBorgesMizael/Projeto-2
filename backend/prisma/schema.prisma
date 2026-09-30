@@ -25,15 +25,21 @@ model User {
   ticketsRequested   Ticket[]        @relation("Requester")
   ticketsAssigned    Ticket[]        @relation("Technician")
   TicketHistory      TicketHistory[]
+  teams              Team[]          @relation("UserTeams")
+  approvalsRequested Approval[]      @relation("ApprovalRequestedBy")
+  approvalsAssigned  Approval[]      @relation("ApprovalAssignedUser")
+  approvalsDecided   Approval[]      @relation("ApprovalDecidedBy")
 }
 
 model Team {
-  id          String   @id @default(uuid())
-  name        String   @unique
+  id          String     @id @default(uuid())
+  name        String     @unique
   description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
   tickets     Ticket[]
+  members     User[]     @relation("UserTeams")
+  approvals   Approval[] @relation("ApprovalAssignedTeam")
 }
 
 model Category {
@@ -89,6 +95,40 @@ model Ticket {
   team          Team?           @relation(fields: [teamId], references: [id])
   technician    User?           @relation("Technician", fields: [technicianId], references: [id])
   history       TicketHistory[]
+  approvals     Approval[]
+}
+
+model ApprovalType {
+  id          String     @id @default(uuid())
+  name        String     @unique
+  description String?
+  isActive    Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  approvals   Approval[]
+}
+
+model Approval {
+  id             String         @id @default(uuid())
+  ticketId       String
+  approvalTypeId String
+  requestedById  String
+  approverUserId String?
+  approverTeamId String?
+  status         ApprovalStatus @default(PENDING)
+  notes          String?
+  decisionNotes  String?
+  decidedAt      DateTime?
+  decidedById    String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  ticket         Ticket         @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  approvalType   ApprovalType   @relation(fields: [approvalTypeId], references: [id])
+  requestedBy    User           @relation("ApprovalRequestedBy", fields: [requestedById], references: [id])
+  approverUser   User?          @relation("ApprovalAssignedUser", fields: [approverUserId], references: [id])
+  approverTeam   Team?          @relation("ApprovalAssignedTeam", fields: [approverTeamId], references: [id])
+  decidedBy      User?          @relation("ApprovalDecidedBy", fields: [decidedById], references: [id])
 }
 
 model Attachment {
@@ -142,6 +182,13 @@ enum UserStatus {
   INACTIVE
 }
 
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
 enum TicketStatus {
   NEW
   IN_PROGRESS
@@ -169,4 +216,8 @@ enum TicketAction {
   ASSIGNED
   COMMENT_ADDED
   ATTACHMENT_ADDED
+  APPROVAL_REQUESTED
+  APPROVAL_APPROVED
+  APPROVAL_REJECTED
+  APPROVAL_CANCELLED
 }
