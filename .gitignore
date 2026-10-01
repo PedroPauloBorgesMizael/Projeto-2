@@ -32,3 +32,7 @@ Thumbs.db
 *.njsproj
 *.sln
 *.sw?
+
+# Documentation
+DOCUMENTACAO_DO_SISTEMA.md
+

@@ -285,8 +285,8 @@ export function UserList() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 sm:p-6 lg:p-8">
-      <div className="w-full max-w-[92%] mx-auto">
+    <div className="min-h-full bg-slate-50 py-6 sm:py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
         {/* Toast feedback */}
         {feedbackMessage && (
           <div

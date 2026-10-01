@@ -136,8 +136,9 @@ export function TicketCreate() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 sm:p-6 lg:p-8">
-      <div className="w-full max-w-[92%] lg:max-w-5xl mx-auto bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8 lg:p-10">
+    <div className="min-h-full bg-slate-50 py-6 sm:py-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="bg-white rounded-2xl shadow-xs border border-slate-200/80 p-6 sm:p-8">
         <div className="flex items-center mb-6 pb-4 border-b border-slate-100">
           <button
             onClick={() => navigate('/tickets')}
@@ -387,5 +388,6 @@ export function TicketCreate() {
         </form>
       </div>
     </div>
-  );
+  </div>
+);
 }

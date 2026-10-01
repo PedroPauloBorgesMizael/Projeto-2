@@ -1,17 +1,17 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Login } from './pages/Login';
+import { Home } from './pages/Home/Home';
 import { TicketList } from './pages/Tickets/TicketList';
 import { TicketCreate } from './pages/Tickets/TicketCreate';
 import { TicketDetails } from './pages/Tickets/TicketDetails';
 import { UserList } from './pages/Users/UserList';
 import { AuxiliarySettings } from './pages/Settings/AuxiliarySettings';
 import { useAuth } from './hooks/useAuth';
-
 import { Layout } from './components/Layout';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
-  return user ? <Layout>{children}</Layout> : <Navigate to="/login" />;
+  return user ? <Layout>{children}</Layout> : <Navigate to="/login" replace />;
 }
 
 function App() {
@@ -19,6 +19,26 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<Login />} />
+
+        {/* Home / Início */}
+        <Route
+          path="/"
+          element={
+            <PrivateRoute>
+              <Home />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/home"
+          element={
+            <PrivateRoute>
+              <Home />
+            </PrivateRoute>
+          }
+        />
+
+        {/* Chamados */}
         <Route
           path="/tickets"
           element={
@@ -43,6 +63,8 @@ function App() {
             </PrivateRoute>
           }
         />
+
+        {/* Gestão de Usuários */}
         <Route
           path="/users"
           element={
@@ -51,6 +73,8 @@ function App() {
             </PrivateRoute>
           }
         />
+
+        {/* Tabelas e Cadastros Auxiliares */}
         <Route
           path="/auxiliary"
           element={
@@ -59,7 +83,9 @@ function App() {
             </PrivateRoute>
           }
         />
-        <Route path="*" element={<Navigate to="/tickets" />} />
+
+        {/* Rota padrão redireciona para a Home */}
+        <Route path="*" element={<Navigate to="/home" replace />} />
       </Routes>
     </BrowserRouter>
   );

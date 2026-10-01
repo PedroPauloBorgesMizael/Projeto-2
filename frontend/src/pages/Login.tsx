@@ -26,7 +26,7 @@ export function Login() {
 
       // Sucesso no login, salvar token no contexto
       signIn(response.token, response.user, response.refreshToken);
-      navigate('/tickets');
+      navigate('/home');
     } catch (err) {
       if (axios.isAxiosError(err)) {
         setError(err.response?.data?.message || 'Usuário ou senha inválidos.');
@@ -161,7 +161,7 @@ export function Login() {
               </a>
             </div>
 
-            <Button type="submit" loading={loading}>
+            <Button type="submit" loading={loading} loadingText="Entrando..." fullWidth size="lg">
               Entrar no Painel
             </Button>
           </form>

@@ -106,15 +106,28 @@ export function TicketList() {
 
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
-      NEW: 'bg-purple-100 text-purple-800',
-      OPEN: 'bg-blue-100 text-blue-800',
-      ASSIGNED: 'bg-indigo-100 text-indigo-800',
-      IN_PROGRESS: 'bg-amber-100 text-amber-800',
-      PENDING: 'bg-orange-100 text-orange-800',
-      RESOLVED: 'bg-emerald-100 text-emerald-800',
-      CLOSED: 'bg-slate-100 text-slate-800',
+      NEW: 'bg-purple-50 text-purple-700 border-purple-200',
+      OPEN: 'bg-blue-50 text-blue-700 border-blue-200',
+      ASSIGNED: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+      IN_PROGRESS: 'bg-amber-50 text-amber-700 border-amber-200',
+      PENDING: 'bg-orange-50 text-orange-700 border-orange-200',
+      RESOLVED: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+      CLOSED: 'bg-slate-100 text-slate-700 border-slate-200',
     };
-    return colors[status] || 'bg-gray-100 text-gray-800';
+    return colors[status] || 'bg-slate-100 text-slate-700 border-slate-200';
+  };
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'CRITICAL':
+        return 'bg-red-50 text-red-700 border-red-200 font-semibold';
+      case 'HIGH':
+        return 'bg-rose-50 text-rose-700 border-rose-200';
+      case 'MEDIUM':
+        return 'bg-amber-50 text-amber-700 border-amber-200';
+      default:
+        return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+    }
   };
 
   const translatePriority = (priority: string) => {
@@ -127,49 +140,98 @@ export function TicketList() {
     setTechnicianFilter(''); setSlaFilter(''); setDateFrom(''); setDateTo('');
   };
 
+  const activeFiltersCount = [
+    statusFilter,
+    priorityFilter,
+    categoryFilter,
+    locationFilter,
+    technicianFilter,
+    slaFilter,
+    dateFrom,
+    dateTo
+  ].filter(Boolean).length;
+
   return (
-    <div className="min-h-screen bg-slate-50 p-4 sm:p-6 lg:p-8">
-      <div className="w-full max-w-[92%] mx-auto">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+    <div className="min-h-full bg-slate-50 py-6 sm:py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+
+        {/* Header da Página */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-slate-800">Minhas Solicitações</h1>
-            <p className="text-slate-500">Gerencie seus chamados de manutenção</p>
+            <h2 className="text-2xl font-bold tracking-tight text-slate-900">Minhas Solicitações</h2>
+            <p className="text-sm text-slate-500">Gerencie, acompanhe e filtre seus chamados de manutenção predial</p>
           </div>
-          <div className="w-full md:w-auto">
-            <Button onClick={() => navigate('/tickets/new')} className="gap-2 px-6">
-              <Plus size={20} />
-              <span>Nova Solicitação</span>
-            </Button>
-          </div>
+          <Button
+            onClick={() => navigate('/tickets/new')}
+            size="md"
+            className="shrink-0"
+          >
+            <Plus size={18} />
+            <span>Nova Solicitação</span>
+          </Button>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-          <div className="flex flex-col md:flex-row gap-4 mb-4">
+        {/* Barra de Filtros e Busca */}
+        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-4 sm:p-5">
+          <div className="flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
               <input
                 type="text"
-                placeholder="Buscar por título..."
+                placeholder="Buscar por título ou descrição..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0a192f] focus:border-transparent outline-none transition-all"
+                className="w-full pl-10 pr-4 py-2.5 bg-slate-50/70 border border-slate-200 rounded-xl text-sm placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
               />
+              {search && (
+                <button
+                  onClick={() => setSearch('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1"
+                >
+                  <X size={15} />
+                </button>
+              )}
             </div>
-            <button 
+
+            <button
               onClick={() => setShowFilters(!showFilters)}
-              className="flex items-center gap-2 px-4 py-2 border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50 transition-colors"
+              className={`inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-all cursor-pointer ${
+                showFilters || activeFiltersCount > 0
+                  ? 'border-blue-300 bg-blue-50/70 text-blue-700'
+                  : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
+              }`}
             >
-              <Filter size={20} />
-              Filtros Avançados
+              <Filter size={17} />
+              <span>Filtros</span>
+              {activeFiltersCount > 0 && (
+                <span className="w-5 h-5 rounded-full bg-blue-600 text-white text-[11px] font-bold flex items-center justify-center">
+                  {activeFiltersCount}
+                </span>
+              )}
             </button>
+
+            {activeFiltersCount > 0 && (
+              <button
+                onClick={clearFilters}
+                className="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 text-xs font-semibold text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer"
+              >
+                <X size={15} />
+                <span>Limpar</span>
+              </button>
+            )}
           </div>
 
+          {/* Painel Expansível de Filtros Avançados */}
           {showFilters && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 pt-4 border-t border-slate-200">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 pt-4 mt-4 border-t border-slate-100">
               <div>
-                <label className="block text-xs font-medium text-slate-500 mb-1">Status</label>
-                <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="w-full p-2 border border-slate-300 rounded-md text-sm">
-                  <option value="">Todos</option>
+                <label className="block text-xs font-semibold text-slate-600 mb-1.5">Status</label>
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                >
+                  <option value="">Todos os status</option>
                   <option value="UNRESOLVED">Todos Pendentes / Em Aberto</option>
                   <option value="NEW">Novo</option>
                   <option value="OPEN">Aberto</option>
@@ -180,132 +242,187 @@ export function TicketList() {
                   <option value="CLOSED">Fechado</option>
                 </select>
               </div>
+
               <div>
-                <label className="block text-xs font-medium text-slate-500 mb-1">Prioridade</label>
-                <select value={priorityFilter} onChange={(e) => setPriorityFilter(e.target.value)} className="w-full p-2 border border-slate-300 rounded-md text-sm">
-                  <option value="">Todas</option>
+                <label className="block text-xs font-semibold text-slate-600 mb-1.5">Prioridade</label>
+                <select
+                  value={priorityFilter}
+                  onChange={(e) => setPriorityFilter(e.target.value)}
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                >
+                  <option value="">Todas as prioridades</option>
                   <option value="LOW">Baixa</option>
                   <option value="MEDIUM">Média</option>
                   <option value="HIGH">Alta</option>
                   <option value="CRITICAL">Crítica</option>
                 </select>
               </div>
+
               <div>
-                <label className="block text-xs font-medium text-slate-500 mb-1">Atraso (SLA)</label>
-                <select value={slaFilter} onChange={(e) => setSlaFilter(e.target.value)} className="w-full p-2 border border-slate-300 rounded-md text-sm">
+                <label className="block text-xs font-semibold text-slate-600 mb-1.5">Atraso no Prazo (SLA)</label>
+                <select
+                  value={slaFilter}
+                  onChange={(e) => setSlaFilter(e.target.value)}
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                >
                   <option value="">Todos</option>
-                  <option value="true">Atrasados</option>
-                  <option value="false">No Prazo</option>
+                  <option value="true">Apenas Atrasados</option>
+                  <option value="false">Dentro do Prazo</option>
                 </select>
               </div>
+
               <div>
-                <label className="block text-xs font-medium text-slate-500 mb-1">Categoria</label>
-                <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className="w-full p-2 border border-slate-300 rounded-md text-sm">
-                  <option value="">Todas</option>
-                  {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                <label className="block text-xs font-semibold text-slate-600 mb-1.5">Categoria</label>
+                <select
+                  value={categoryFilter}
+                  onChange={(e) => setCategoryFilter(e.target.value)}
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                >
+                  <option value="">Todas as categorias</option>
+                  {categories.map((c) => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
                 </select>
               </div>
+
               <div>
-                <label className="block text-xs font-medium text-slate-500 mb-1">Localização</label>
-                <select value={locationFilter} onChange={(e) => setLocationFilter(e.target.value)} className="w-full p-2 border border-slate-300 rounded-md text-sm">
-                  <option value="">Todas</option>
-                  {locations.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
+                <label className="block text-xs font-semibold text-slate-600 mb-1.5">Localização / Unidade</label>
+                <select
+                  value={locationFilter}
+                  onChange={(e) => setLocationFilter(e.target.value)}
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                >
+                  <option value="">Todas as localizações</option>
+                  {locations.map((l) => (
+                    <option key={l.id} value={l.id}>{l.name}</option>
+                  ))}
                 </select>
               </div>
+
               {(user?.role === 'ADMIN' || user?.role === 'MANAGER') && (
                 <div>
-                  <label className="block text-xs font-medium text-slate-500 mb-1">Técnico</label>
-                  <select value={technicianFilter} onChange={(e) => setTechnicianFilter(e.target.value)} className="w-full p-2 border border-slate-300 rounded-md text-sm">
-                    <option value="">Todos</option>
-                    {technicians.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">Técnico Designado</label>
+                  <select
+                    value={technicianFilter}
+                    onChange={(e) => setTechnicianFilter(e.target.value)}
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                  >
+                    <option value="">Todos os técnicos</option>
+                    {technicians.map((t) => (
+                      <option key={t.id} value={t.id}>{t.name}</option>
+                    ))}
                   </select>
                 </div>
               )}
+
               <div>
-                <label className="block text-xs font-medium text-slate-500 mb-1">Data Inicial (Criação)</label>
-                <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="w-full p-2 border border-slate-300 rounded-md text-sm" />
+                <label className="block text-xs font-semibold text-slate-600 mb-1.5">Data Inicial</label>
+                <input
+                  type="date"
+                  value={dateFrom}
+                  onChange={(e) => setDateFrom(e.target.value)}
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                />
               </div>
+
               <div>
-                <label className="block text-xs font-medium text-slate-500 mb-1">Data Final (Criação)</label>
-                <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="w-full p-2 border border-slate-300 rounded-md text-sm" />
-              </div>
-              <div className="flex items-end">
-                <button onClick={clearFilters} className="flex items-center gap-2 text-sm text-red-600 hover:text-red-800 p-2">
-                  <X size={16} /> Limpar Filtros
-                </button>
+                <label className="block text-xs font-semibold text-slate-600 mb-1.5">Data Final</label>
+                <input
+                  type="date"
+                  value={dateTo}
+                  onChange={(e) => setDateTo(e.target.value)}
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                />
               </div>
             </div>
           )}
         </div>
 
+        {/* Tabela ou Estados de Carga / Vazio */}
         {loading ? (
-          <div className="flex justify-center items-center h-40">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0a192f]"></div>
+          <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-12 flex flex-col items-center justify-center gap-3">
+            <div className="animate-spin rounded-full h-8 w-8 border-2 border-blue-600 border-t-transparent" />
+            <span className="text-xs text-slate-400">Carregando solicitações...</span>
           </div>
         ) : tickets.length === 0 ? (
-          <div className="bg-white rounded-lg shadow-sm p-8 text-center">
-            <p className="text-slate-500 text-lg">Nenhuma solicitação encontrada com esses filtros.</p>
+          <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-10 text-center">
+            <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-3 text-slate-400">
+              <Filter size={24} />
+            </div>
+            <h3 className="text-base font-bold text-slate-800">Nenhum chamado encontrado</h3>
+            <p className="text-xs text-slate-500 max-w-md mx-auto mt-1 mb-4">
+              Não encontramos nenhuma solicitação com os critérios ou filtros selecionados. Tente ajustar a busca.
+            </p>
+            {activeFiltersCount > 0 && (
+              <Button onClick={clearFilters} variant="outline" size="sm">
+                Limpar Filtros Aplicados
+              </Button>
+            )}
           </div>
         ) : (
-          <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+          <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-slate-50 border-b border-slate-200">
-                  <tr>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Título</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Status</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Prioridade</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Localização</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Categoria / Téc</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Data</th>
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-200/80 bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                    <th className="px-6 py-4">Título & Descrição</th>
+                    <th className="px-6 py-4">Status</th>
+                    <th className="px-6 py-4">Prioridade</th>
+                    <th className="px-6 py-4">Localização</th>
+                    <th className="px-6 py-4">Categoria / Técnico</th>
+                    <th className="px-6 py-4">Data</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-200">
+                <tbody className="divide-y divide-slate-100 text-sm">
                   {tickets.map((ticket) => (
-                    <tr 
-                      key={ticket.id} 
+                    <tr
+                      key={ticket.id}
                       onClick={() => navigate(`/tickets/${ticket.id}`)}
-                      className="hover:bg-slate-50 transition-colors cursor-pointer"
+                      className="hover:bg-slate-50/80 transition-colors cursor-pointer group"
                     >
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
-                          <span className="font-medium text-slate-800">{ticket.title}</span>
+                          <span className="font-semibold text-slate-900 group-hover:text-blue-600 transition-colors">
+                            {ticket.title}
+                          </span>
                           {ticket.slaBreached && (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-700 uppercase">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200 uppercase">
                               Atrasado
                             </span>
                           )}
                         </div>
-                        <div className="text-sm text-slate-500 truncate max-w-sm sm:max-w-md md:max-w-lg xl:max-w-2xl">{ticket.description}</div>
+                        <div className="text-xs text-slate-500 truncate max-w-sm sm:max-w-md md:max-w-lg mt-0.5">
+                          {ticket.description}
+                        </div>
                       </td>
-                      <td className="px-6 py-4">
-                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${getStatusColor(ticket.status)}`}>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium border ${getStatusColor(ticket.status)}`}>
                           {translateStatus(ticket.status)}
                         </span>
                       </td>
-                      <td className="px-6 py-4">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          ticket.priority === 'CRITICAL' || ticket.priority === 'HIGH' ? 'bg-red-100 text-red-800' :
-                          ticket.priority === 'MEDIUM' ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-green-100 text-green-800'
-                        }`}>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium border ${getPriorityColor(ticket.priority)}`}>
                           {translatePriority(ticket.priority)}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-sm text-slate-700">
+                      <td className="px-6 py-4 whitespace-nowrap text-xs font-medium text-slate-700">
                         {ticket.locationRef?.name || '-'}
                       </td>
-                      <td className="px-6 py-4 text-sm text-slate-600">
-                        <div className="font-medium text-slate-700">{ticket.categoryRef?.name || '-'}</div>
-                        <div className="text-xs text-slate-500">{ticket.technician?.name || 'Sem técnico'}</div>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="font-medium text-xs text-slate-800">{ticket.categoryRef?.name || '-'}</div>
+                        <div className="text-[11px] text-slate-400">{ticket.technician?.name || 'Sem técnico'}</div>
                       </td>
-                      <td className="px-6 py-4 text-sm text-slate-600">
+                      <td className="px-6 py-4 whitespace-nowrap text-xs text-slate-500 font-medium">
                         {new Date(ticket.createdAt).toLocaleDateString('pt-BR')}
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
+            </div>
+            <div className="px-6 py-3 bg-slate-50/60 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+              <span>Total de solicitações: <strong>{tickets.length}</strong></span>
+              <span>Clique em qualquer linha para ver detalhes</span>
             </div>
           </div>
         )}

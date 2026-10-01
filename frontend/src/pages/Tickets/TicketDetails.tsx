@@ -384,11 +384,11 @@ export function TicketDetails() {
   const pendingApprovalsCount = approvals.filter((a) => a.status === 'PENDING').length;
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 sm:p-6 lg:p-8">
+    <div className="min-h-full bg-slate-50 py-6 sm:py-8">
       {/* Toast Feedback */}
       {feedbackMessage && (
         <div
-          className={`fixed top-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg border transition-all duration-300 ${
+          className={`fixed top-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg border transition-all duration-300 ${
             feedbackMessage.type === 'success'
               ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
               : 'bg-red-50 text-red-800 border-red-200'
@@ -403,18 +403,19 @@ export function TicketDetails() {
         </div>
       )}
 
-      <div className="w-full max-w-[92%] mx-auto flex flex-col lg:flex-row gap-6">
-        <div className="flex-1">
-          <button
-            onClick={() => navigate('/tickets')}
-            className="flex items-center text-slate-600 hover:text-slate-900 mb-6 transition-colors cursor-pointer"
-          >
-            <ArrowLeft size={20} className="mr-2" />
-            Voltar
-          </button>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-col lg:flex-row gap-6">
+          <div className="flex-1">
+            <button
+              onClick={() => navigate('/tickets')}
+              className="inline-flex items-center text-xs font-semibold text-slate-500 hover:text-slate-800 mb-4 transition-colors cursor-pointer"
+            >
+              <ArrowLeft size={16} className="mr-1.5" />
+              Voltar para lista de solicitações
+            </button>
 
-          {/* Ticket Information Card */}
-          <div className="bg-white rounded-lg shadow-sm p-6 sm:p-8 mb-6">
+            {/* Ticket Information Card */}
+            <div className="bg-white rounded-2xl shadow-xs border border-slate-200/80 p-6 sm:p-8 mb-6">
             <div className="flex flex-wrap justify-between items-start gap-4 mb-6">
               <div>
                 <h1 className="text-2xl font-bold text-slate-800 mb-2">{ticket.title}</h1>
@@ -835,6 +836,7 @@ export function TicketDetails() {
           </div>
         )}
       </div>
+    </div>
 
       {/* ========================================================= */}
       {/* MODAL: SOLICITAR APROVAÇÃO */}
